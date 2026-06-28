@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FantaMondiali – Classifica</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=Barlow:wght@400;500;600&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:       #0a0e14;
+    --surface:  #111827;
+    --row-alt:  #0f1720;
+    --border:   #1e2d3d;
+    --gold:     #f5c518;
+    --silver:   #c0c0c0;
+    --bronze:   #cd7f32;
+    --green:    #22c55e;
+    --red:      #ef4444;
+    --text:     #e2e8f0;
+    --muted:    #64748b;
+    --accent:   #1e3a5f;
+    --header-bg:#0d1b2a;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    min-height: 100vh;
+    padding: 0 0 60px;
+  }
+
+  /* ── HEADER ── */
+  .site-header {
+    background: var(--header-bg);
+    border-bottom: 2px solid var(--border);
+    padding: 28px 24px 20px;
+    text-align: center;
+  }
+  .site-header h1 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: clamp(2.2rem, 7vw, 4rem);
+    font-weight: 900;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: #fff;
+    line-height: 1;
+  }
+  .site-header h1 span { color: var(--gold); }
+  .trophy-row {
+    display: flex; align-items: center; justify-content: center; gap: 16px;
+    margin-top: 6px;
+  }
+  .trophy-icon { font-size: 2rem; }
+  .subtitle {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.05rem;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .live-dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    background: var(--green);
+    border-radius: 50%;
+    margin-right: 6px;
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: .4; transform: scale(.7); }
+  }
+
+  /* ── CONTAINER ── */
+  .container { max-width: 960px; margin: 0 auto; padding: 0 16px; }
+
+  /* ── SECTION TITLE ── */
+  .section-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 28px 0 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ── TABLE ── */
+  .table-wrap { overflow-x: auto; }
+
+  table.classifica {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1rem;
+  }
+  table.classifica thead tr {
+    background: var(--accent);
+    color: var(--text);
+  }
+  table.classifica thead th {
+    padding: 12px 8px;
+    text-align: center;
+    font-weight: 700;
+    letter-spacing: .1em;
+    font-size: .78rem;
+    text-transform: uppercase;
+    white-space: nowrap;
+    border-bottom: 2px solid var(--gold);
+  }
+  table.classifica thead th.left { text-align: left; }
+  table.classifica tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background .15s;
+  }
+  table.classifica tbody tr:nth-child(even) { background: var(--row-alt); }
+  table.classifica tbody tr:hover { background: #162032; }
+  table.classifica td {
+    padding: 11px 8px;
+    text-align: center;
+    font-size: 1.05rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  table.classifica td.left { text-align: left; }
+
+  .pos-cell { font-size: 1.3rem; font-weight: 900; width: 56px; min-width: 56px; }
+  .pos-1 { color: var(--gold); }
+  .pos-2 { color: var(--silver); }
+  .pos-3 { color: var(--bronze); }
+  .team-name { font-size: 1.05rem; font-weight: 700; min-width: 130px; }
+  .pts-cell  { color: var(--gold); font-size: 1.2rem; font-weight: 900; }
+  .score-cell{ color: #fff; font-size: 1.1rem; font-weight: 800; }
+  .dr-pos { color: var(--green); font-weight: 800; }
+  .dr-neg { color: var(--red);   font-weight: 800; }
+  .dr-zero{ color: var(--muted); font-weight: 700; }
+
+  /* legend */
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 10px 24px;
+    padding: 14px 0;
+    border-top: 1px solid var(--border);
+    font-size: .78rem;
+    font-family: 'Barlow Condensed', sans-serif;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+  }
+  .legend span { color: var(--muted); }
+  .legend b.v  { color: var(--green); }
+  .legend b.p  { color: var(--gold);  }
+  .legend b.s  { color: var(--red);   }
+  .legend b.dr { color: var(--green); }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+    margin-top: 24px;
+  }
+  .card h2 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 18px;
+  }
+
+  /* ── FORM ── */
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 12px;
+    align-items: end;
+  }
+  .form-vs {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.4rem; font-weight: 900;
+    color: var(--muted);
+    text-align: center;
+    padding-bottom: 10px;
+  }
+  .score-row {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 12px;
+    align-items: end;
+    margin-top: 12px;
+  }
+  .score-sep {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 2rem; font-weight: 900;
+    color: var(--muted);
+    text-align: center;
+    padding-bottom: 6px;
+  }
+  .pt-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 12px;
+  }
+  .field label {
+    display: block;
+    font-size: .75rem;
+    font-weight: 600;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 5px;
+  }
+  .field select,
+  .field input[type="number"] {
+    width: 100%;
+    background: #0d1b2a;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 10px 12px;
+    outline: none;
+    transition: border-color .2s;
+    -webkit-appearance: none;
+  }
+  .field select:focus,
+  .field input[type="number"]:focus { border-color: var(--gold); }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 12px 28px;
+    border: none; border-radius: 7px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1rem; font-weight: 800;
+    letter-spacing: .1em; text-transform: uppercase;
+    cursor: pointer;
+    transition: opacity .18s, transform .12s;
+  }
+  .btn:active { transform: scale(.97); }
+  .btn-primary { background: var(--gold); color: #0a0e14; }
+  .btn-primary:hover { opacity: .88; }
+  .btn-danger  { background: var(--red);  color: #fff; }
+  .btn-danger:hover  { opacity: .88; }
+  .btn-sm { padding: 5px 12px; font-size: .82rem; }
+  .btn-row { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+
+  /* ── STORICO ── */
+  .history-list {
+    list-style: none;
+    display: flex; flex-direction: column; gap: 6px;
+    max-height: 320px;
+    overflow-y: auto;
+  }
+  .history-list::-webkit-scrollbar { width: 4px; }
+  .history-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  .hist-item {
+    display: flex; align-items: center; justify-content: space-between;
+    background: #0d1b2a;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: .95rem;
+  }
+  .hist-match { font-weight: 700; color: var(--text); }
+  .hist-score { color: var(--gold); font-weight: 900; font-size: 1.05rem; }
+  .hist-pt    { color: var(--muted); font-size: .82rem; margin-left: 6px; }
+  .giornata-badge {
+    display: inline-block;
+    background: var(--accent);
+    border: 1px solid var(--gold);
+    border-radius: 20px;
+    padding: 3px 12px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: .82rem; font-weight: 700;
+    letter-spacing: .1em;
+    color: var(--gold);
+  }
+
+  /* ── LOADING ── */
+  #loading {
+    text-align: center;
+    padding: 40px 0;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1.1rem;
+    color: var(--muted);
+    letter-spacing: .1em;
+  }
+  .spinner {
+    width: 32px; height: 32px;
+    border: 3px solid var(--border);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+    margin: 0 auto 12px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── TOAST ── */
+  #toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: var(--green); color: #0a0e14;
+    padding: 11px 26px;
+    border-radius: 8px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1rem; font-weight: 800; letter-spacing: .08em;
+    opacity: 0; pointer-events: none;
+    transition: opacity .3s;
+    z-index: 999;
+    white-space: nowrap;
+  }
+  #toast.show { opacity: 1; }
+  #toast.err  { background: var(--red); color: #fff; }
+
+  /* ── ADMIN LOCK ── */
+  #admin-gate {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+    margin-top: 24px;
+    text-align: center;
+  }
+  #admin-gate p {
+    font-family: 'Barlow Condensed', sans-serif;
+    color: var(--muted); font-size: 1rem; margin-bottom: 12px;
+    letter-spacing: .08em; text-transform: uppercase;
+  }
+  #admin-gate input {
+    background: #0d1b2a;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 1rem; font-weight: 600;
+    padding: 10px 14px;
+    outline: none;
+    width: 200px;
+    text-align: center;
+    letter-spacing: .2em;
+    margin-right: 8px;
+  }
+  #admin-gate input:focus { border-color: var(--gold); }
+
+  @media (max-width: 600px) {
+    .form-grid, .score-row { grid-template-columns: 1fr; }
+    .form-vs, .score-sep { display: none; }
+    table.classifica td, table.classifica th { padding: 9px 5px; font-size: .9rem; }
+  }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="trophy-row">
+    <span class="trophy-icon">🏆</span>
+    <h1>Fanta<span>Mondiali</span></h1>
+    <span class="trophy-icon">🏆</span>
+  </div>
+  <p class="subtitle"><span class="live-dot"></span>Live · Aggiornamento in tempo reale</p>
+</header>
+
+<div class="container">
+
+  <!-- CLASSIFICA -->
+  <p class="section-title">Classifica</p>
+  <div id="loading">
+    <div class="spinner"></div>
+    Caricamento classifica...
+  </div>
+  <div id="classifica-wrap" style="display:none;">
+    <div class="table-wrap">
+      <table class="classifica">
+        <thead>
+          <tr>
+            <th>Pos.</th>
+            <th class="left">Squadra</th>
+            <th>V</th><th>P</th><th>S</th>
+            <th>GF</th><th>GS</th>
+            <th>DR</th>
+            <th>Punti</th>
+            <th>Pt. Totale</th>
+          </tr>
+        </thead>
+        <tbody id="tbl-body"></tbody>
+      </table>
+    </div>
+    <div class="legend">
+      <span><b class="v">V</b> = Vittorie</span>
+      <span><b class="p">P</b> = Pareggi</span>
+      <span><b class="s">S</b> = Sconfitte</span>
+      <span><b>GF</b> = Gol Fatti</span>
+      <span><b>GS</b> = Gol Subiti</span>
+      <span><b class="dr">DR</b> = Diff. Reti</span>
+      <span><b style="color:var(--gold)">Punti</b> = Punti classifica</span>
+      <span><b>Pt. Totale</b> = Punteggio fantacalcio</span>
+    </div>
+  </div>
+
+  <!-- STORICO -->
+  <div class="card" id="storico-card" style="display:none;">
+    <h2>📋 Storico partite</h2>
+    <ul class="history-list" id="hist-list"></ul>
+  </div>
+
+  <!-- ADMIN GATE -->
+  <div id="admin-gate">
+    <p>🔒 Sei l'admin? Inserisci la password per registrare risultati</p>
+    <input type="password" id="pwd-input" placeholder="••••••" onkeydown="if(event.key==='Enter')checkPwd()">
+    <button class="btn btn-primary" onclick="checkPwd()">Entra</button>
+  </div>
+
+  <!-- PANNELLO ADMIN (nascosto finché non si fa login) -->
+  <div id="admin-panel" style="display:none;">
+    <div class="card">
+      <h2>⚽ Registra risultato</h2>
+
+      <div class="form-grid">
+        <div class="field">
+          <label>Squadra Casa</label>
+          <select id="teamA"></select>
+        </div>
+        <div class="form-vs">VS</div>
+        <div class="field">
+          <label>Squadra Ospite</label>
+          <select id="teamB"></select>
+        </div>
+      </div>
+
+      <div class="score-row">
+        <div class="field">
+          <label>Gol Casa</label>
+          <input type="number" id="golA" min="0" value="0">
+        </div>
+        <div class="score-sep">–</div>
+        <div class="field">
+          <label>Gol Ospite</label>
+          <input type="number" id="golB" min="0" value="0">
+        </div>
+      </div>
+
+      <div class="pt-row">
+        <div class="field">
+          <label>Pt. Fantacalcio Casa</label>
+          <input type="number" id="ptA" min="0" step="0.5" value="0">
+        </div>
+        <div class="field">
+          <label>Pt. Fantacalcio Ospite</label>
+          <input type="number" id="ptB" min="0" step="0.5" value="0">
+        </div>
+      </div>
+
+      <div class="field" style="margin-top:12px; max-width:180px;">
+        <label>Giornata</label>
+        <input type="number" id="round" min="1" value="4">
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="addResult()">✓ Registra</button>
+        <button class="btn btn-danger" onclick="confirmReset()" style="margin-left:auto;">↺ Reset totale</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div id="toast"></div>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, set, onValue, remove, push } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+// ── CONFIG ────────────────────────────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey: "AIzaSyA1p9hiboTZLZ2kxbtYq-VtZzLdVWa47Us",
+  authDomain: "fanta-mondiali.firebaseapp.com",
+  databaseURL: "https://fanta-mondiali-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "fanta-mondiali",
+  storageBucket: "fanta-mondiali.firebasestorage.app",
+  messagingSenderId: "569008844933",
+  appId: "1:569008844933:web:a755d51876bfb2ac3a79ec"
+};
+
+const app = initializeApp(firebaseConfig);
+const db  = getDatabase(app);
+
+// ── PASSWORD ADMIN ────────────────────────────────────────────────────────────
+const ADMIN_PWD = "fanta2026";
+let isAdmin = false;
+
+window.checkPwd = function() {
+  const val = document.getElementById('pwd-input').value;
+  if (val === ADMIN_PWD) {
+    isAdmin = true;
+    document.getElementById('admin-gate').style.display  = 'none';
+    document.getElementById('admin-panel').style.display = 'block';
+    toast('Accesso admin ✓');
+  } else {
+    toast('Password errata', true);
+  }
+};
+
+// ── DATI INIZIALI (snapshot dalla foto) ───────────────────────────────────────
+const INITIAL_TEAMS = [
+  { name:"Melo",           V:2, P:0, S:1, GF:11, GS:5,  ptTot:243.5 },
+  { name:"Makko & Miki",   V:2, P:0, S:1, GF:11, GS:9,  ptTot:241.5 },
+  { name:"Jack & Lollo",   V:2, P:0, S:1, GF:10, GS:7,  ptTot:234   },
+  { name:"Matti",          V:2, P:0, S:1, GF:6,  GS:5,  ptTot:217   },
+  { name:"Cora",           V:1, P:1, S:1, GF:6,  GS:6,  ptTot:220.5 },
+  { name:"Dibe",           V:1, P:1, S:1, GF:5,  GS:4,  ptTot:211   },
+  { name:"Campa & Lorenz", V:1, P:0, S:2, GF:8,  GS:11, ptTot:233.5 },
+  { name:"Nico & Fede",    V:1, P:0, S:2, GF:9,  GS:13, ptTot:232   },
+  { name:"Bigna & Manfro", V:1, P:0, S:2, GF:6,  GS:9,  ptTot:221.5 },
+  { name:"Pace",           V:1, P:0, S:2, GF:4,  GS:6,  ptTot:206.5 },
+];
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function pts(t)  { return t.V * 3 + t.P; }
+function dr(t)   { return t.GF - t.GS; }
+function sorted(teams) {
+  return [...teams].sort((a,b) => {
+    if (pts(b) !== pts(a)) return pts(b) - pts(a);
+    if (dr(b)  !== dr(a))  return dr(b)  - dr(a);
+    if (b.GF   !== a.GF)   return b.GF   - a.GF;
+    return b.ptTot - a.ptTot;
+  });
+}
+
+// ── RENDER CLASSIFICA ─────────────────────────────────────────────────────────
+function renderTable(teams) {
+  const tbody  = document.getElementById('tbl-body');
+  const medals = ['🥇','🥈','🥉'];
+  const rank   = sorted(teams);
+
+  tbody.innerHTML = rank.map((t, i) => {
+    const pos     = i + 1;
+    const p       = pts(t);
+    const d       = dr(t);
+    const drClass = d > 0 ? 'dr-pos' : d < 0 ? 'dr-neg' : 'dr-zero';
+    const drStr   = d > 0 ? `+${d}` : `${d}`;
+    const posLbl  = pos <= 3 ? medals[pos-1] : pos;
+    const posClass= pos <= 3 ? `pos-${pos}` : '';
+    return `<tr>
+      <td class="pos-cell ${posClass}">${posLbl}</td>
+      <td class="left team-name">${t.name}</td>
+      <td>${t.V}</td><td>${t.P}</td><td>${t.S}</td>
+      <td>${t.GF}</td><td>${t.GS}</td>
+      <td class="${drClass}">${drStr}</td>
+      <td class="pts-cell">${p}</td>
+      <td class="score-cell">${t.ptTot}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('loading').style.display        = 'none';
+  document.getElementById('classifica-wrap').style.display= 'block';
+}
+
+// ── RENDER STORICO ────────────────────────────────────────────────────────────
+function renderHistory(matches) {
+  const ul   = document.getElementById('hist-list');
+  const card = document.getElementById('storico-card');
+  const keys = Object.keys(matches || {});
+
+  if (!keys.length) {
+    card.style.display = 'none';
+    return;
+  }
+  card.style.display = 'block';
+
+  // ordina per timestamp decrescente
+  const sorted_m = keys
+    .map(k => ({ key: k, ...matches[k] }))
+    .sort((a,b) => (b.ts || 0) - (a.ts || 0));
+
+  ul.innerHTML = sorted_m.map(m => `
+    <li class="hist-item">
+      <div>
+        <span class="hist-match">${m.a} <span class="hist-score">${m.ga}–${m.gb}</span> ${m.b}</span>
+        <span class="hist-pt">(${m.ptA} vs ${m.ptB} pt.)</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span class="giornata-badge">G${m.round}</span>
+        ${isAdmin ? `<button class="btn btn-danger btn-sm" onclick="window.removeMatch('${m.key}')">✕</button>` : ''}
+      </div>
+    </li>
+  `).join('');
+}
+
+// ── FIREBASE: ascolta in tempo reale ──────────────────────────────────────────
+const teamsRef   = ref(db, 'teams');
+const matchesRef = ref(db, 'matches');
+
+let currentTeams   = null;
+let currentMatches = {};
+
+onValue(teamsRef, snap => {
+  const data = snap.val();
+  if (!data) {
+    // primo avvio: inizializza con snapshot
+    const init = {};
+    INITIAL_TEAMS.forEach(t => { init[t.name.replace(/\s|&/g,'_')] = { ...t }; });
+    set(teamsRef, init);
+    return;
+  }
+  currentTeams = Object.values(data);
+  renderTable(currentTeams);
+  populateSelects(currentTeams);
+});
+
+onValue(matchesRef, snap => {
+  currentMatches = snap.val() || {};
+  renderHistory(currentMatches);
+  // ri-render storico con tasti admin se loggato
+});
+
+// ── POPOLATE SELECTS ──────────────────────────────────────────────────────────
+function populateSelects(teams) {
+  const names = teams.map(t => t.name);
+  ['teamA','teamB'].forEach(id => {
+    const sel = document.getElementById(id);
+    const cur = sel.value;
+    sel.innerHTML = names.map(n => `<option value="${n}">${n}</option>`).join('');
+    if (names.includes(cur)) sel.value = cur;
+  });
+  if (!document.getElementById('teamB').value && names.length > 1)
+    document.getElementById('teamB').selectedIndex = 1;
+}
+
+// ── AGGIUNGI RISULTATO ────────────────────────────────────────────────────────
+window.addResult = function() {
+  if (!currentTeams) return;
+  const a     = document.getElementById('teamA').value;
+  const b     = document.getElementById('teamB').value;
+  const ga    = parseInt(document.getElementById('golA').value)  || 0;
+  const gb    = parseInt(document.getElementById('golB').value)  || 0;
+  const ptA   = parseFloat(document.getElementById('ptA').value) || 0;
+  const ptB   = parseFloat(document.getElementById('ptB').value) || 0;
+  const round = parseInt(document.getElementById('round').value) || 1;
+
+  if (a === b) { toast('Scegli due squadre diverse!', true); return; }
+
+  const teamsMap = {};
+  currentTeams.forEach(t => { teamsMap[t.name] = { ...t }; });
+
+  const tA = teamsMap[a];
+  const tB = teamsMap[b];
+
+  tA.GF += ga; tA.GS += gb;
+  tB.GF += gb; tB.GS += ga;
+  tA.ptTot = Math.round((tA.ptTot + ptA) * 10) / 10;
+  tB.ptTot = Math.round((tB.ptTot + ptB) * 10) / 10;
+
+  if (ga > gb)      { tA.V++; tB.S++; }
+  else if (ga < gb) { tB.V++; tA.S++; }
+  else              { tA.P++; tB.P++; }
+
+  // scrivi su Firebase
+  const newTeams = {};
+  Object.values(teamsMap).forEach(t => {
+    newTeams[t.name.replace(/[\s&]/g,'_')] = t;
+  });
+  set(teamsRef, newTeams);
+  push(matchesRef, { a, b, ga, gb, ptA, ptB, round, ts: Date.now() });
+
+  // reset form
+  document.getElementById('golA').value = 0;
+  document.getElementById('golB').value = 0;
+  document.getElementById('ptA').value  = 0;
+  document.getElementById('ptB').value  = 0;
+
+  toast(`${a} ${ga}–${gb} ${b} registrato ✓`);
+};
+
+// ── RIMUOVI PARTITA ───────────────────────────────────────────────────────────
+window.removeMatch = function(key) {
+  if (!confirm('Rimuovere questa partita? I dati verranno ricalcolati.')) return;
+  const m = currentMatches[key];
+  if (!m) return;
+
+  const teamsMap = {};
+  currentTeams.forEach(t => { teamsMap[t.name] = { ...t }; });
+
+  const tA = teamsMap[m.a];
+  const tB = teamsMap[m.b];
+
+  tA.GF -= m.ga; tA.GS -= m.gb;
+  tB.GF -= m.gb; tB.GS -= m.ga;
+  tA.ptTot = Math.round((tA.ptTot - m.ptA) * 10) / 10;
+  tB.ptTot = Math.round((tB.ptTot - m.ptB) * 10) / 10;
+
+  if (m.ga > m.gb)      { tA.V--; tB.S--; }
+  else if (m.ga < m.gb) { tB.V--; tA.S--; }
+  else                  { tA.P--; tB.P--; }
+
+  const newTeams = {};
+  Object.values(teamsMap).forEach(t => {
+    newTeams[t.name.replace(/[\s&]/g,'_')] = t;
+  });
+  set(teamsRef, newTeams);
+  remove(ref(db, `matches/${key}`));
+  toast('Partita rimossa');
+};
+
+// ── RESET ─────────────────────────────────────────────────────────────────────
+window.confirmReset = function() {
+  if (!confirm('⚠️ Reset totale? Torni allo snapshot iniziale della foto.')) return;
+  const init = {};
+  INITIAL_TEAMS.forEach(t => { init[t.name.replace(/[\s&]/g,'_')] = { ...t }; });
+  set(teamsRef, init);
+  remove(matchesRef);
+  toast('Reset eseguito');
+};
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+let toastTimer;
+window.toast = function(msg, isErr = false) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'show' + (isErr ? ' err' : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.className = ''; }, 2400);
+};
+</script>
+</body>
+</html>
